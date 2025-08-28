@@ -1,12 +1,114 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Multi-Env Scan Explorer (index2 with SFTP)</title>
-<!-- (생략: 전체 index2.html 코드) -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multi-Env Scan Explorer (split)</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- 전체 코드를 위에서 복사 -->
+<header>
+  <h1>Multi-Env Scan Explorer</h1>
+  <div class="row">
+    <div class="card">
+      <div>
+        <div class="muted">개발(DEV)</div>
+        <input id="file-dev" type="file" accept=".txt,.log,.lst,.json,text/plain">
+      </div>
+      <div>
+        <div class="muted">테스트(TEST)</div>
+        <input id="file-test" type="file" accept=".txt,.log,.lst,.json,text/plain">
+      </div>
+      <div>
+        <div class="muted">운영(PROD, 선택)</div>
+        <input id="file-prod" type="file" accept=".txt,.log,.lst,.json,text/plain">
+      </div>
+      <button id="btn-clear" class="btn">초기화</button>
+    </div>
+
+    <div class="card">
+      <div class="legend">
+        <label class="muted">표시할 차이:</label>
+        <label class="chip"><input type="checkbox" id="f-hash"> <i class="hash"></i>해시 다름 <span id="c-hash" class="count">0</span></label>
+        <label class="chip"><input type="checkbox" id="f-size"> <i class="size"></i>크기 다름 <span id="c-size" class="count">0</span></label>
+        <label class="chip"><input type="checkbox" id="f-both"> <i class="both"></i>둘 다 다름 <span id="c-both" class="count">0</span></label>
+      </div>
+    </div>
+
+    <div class="card" style="gap:6px;">
+      <span class="muted">공통 접두</span>
+      <input id="prefix" class="text" placeholder="/data/any/any7/dom/any_do/server" style="width:320px;">
+      <label class="muted"><input type="checkbox" id="auto-prefix" checked> 자동</label>
+      <span id="prefix-show" class="pill">/</span>
+      <span class="norm-badge" title="운영: CLU_SBM_ → SBM_">이름 정규화 ON</span>
+    </div>
+
+    <div class="card" style="gap:6px;">
+      <span class="muted">제외 확장자</span>
+      <input id="ignore-exts" class="text" style="width:280px;" value=".java" placeholder=".java,.log,.tmp">
+      <button id="btn-apply-ignore" class="btn">적용</button>
+    </div>
+
+    <div class="card">
+      <button id="btn-export-all" class="btn">엑셀(CSV) 내보내기 - 전체</button>
+      <button id="btn-export-filtered" class="btn">엑셀(CSV) 내보내기 - 현재 표시만</button>
+    </div>
+
+    <input id="q" class="search" placeholder="경로 검색">
+    <button id="btn-expand" class="btn">모두 펼치기</button>
+    <button id="btn-collapse" class="btn">모두 접기</button>
+    <span id="stats" class="muted"></span>
+  </div>
+</header>
+
+<div class="layout">
+  <section class="left">
+    <div id="drop" class="dropzone">여기에 scan-result 파일(DEV/TEST/PROD)을 드롭하거나 상단에서 선택</div>
+    <div id="tree" class="tree"></div>
+  </section>
+
+  <section class="right">
+    <h3 id="detail-title">상세 정보</h3>
+    <div class="kv">
+      <div class="k">선택 파일</div><div class="v"><div id="d-path" class="pathbox wrap2 path-mono muted">트리에서 파일을 클릭하세요</div></div>
+      <div class="k">풀 경로</div><div class="v"><div id="d-full" class="pathbox wrap2 path-mono muted">-</div></div>
+    </div>
+    <table id="env-table" style="display:none">
+      <thead>
+        <tr>
+          <th>환경</th><th>경로</th><th>크기</th><th>수정시간</th><th>해시</th><th>액션</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</div>
+
+<!-- SFTP Modal -->
+<div id="sftp-modal">
+  <div class="box">
+    <h3 style="margin:0 0 8px;">SFTP 작업</h3>
+    <div style="display:grid; grid-template-columns:120px 1fr; gap:8px;">
+      <label>서버 프로필</label>
+      <select id="sf-profile" class="text">
+        <option value="">직접 입력</option>
+      </select>
+      <label>환경</label><input id="sf-env" class="text" readonly>
+      <label>경로</label><input id="sf-path" class="text" readonly>
+      <label>호스트</label><input id="sf-host" class="text" placeholder="127.0.0.1">
+      <label>포트</label><input id="sf-port" class="text" value="22">
+      <label>계정</label><input id="sf-user" class="text" placeholder="deploy">
+      <label>패스워드</label><input id="sf-pass" class="text" type="password">
+    </div>
+    <div style="display:flex; gap:8px; margin-top:12px; justify-content:flex-end;">
+      <button id="sf-cancel" class="btn">취소</button>
+      <button id="sf-stat" class="btn">메타 조회</button>
+      <button id="sf-download" class="btn">다운로드</button>
+    </div>
+    <div id="sf-msg" class="muted" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
